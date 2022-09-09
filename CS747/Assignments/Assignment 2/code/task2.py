@@ -46,13 +46,21 @@ class AlgorithmBatched:
         self.batch_size = batch_size
         assert self.horizon % self.batch_size == 0, "Horizon must be a multiple of batch size"
         # START EDITING HERE
+<<<<<<< HEAD
         self.success = np.zeros((num_arms))
         self.failure = np.zeros((num_arms))
         self.samples = np.zeros((num_arms, self.batch_size))
+=======
+        self.time = 2
+        self.values = np.zeros(num_arms)
+        self.ucb = np.zeros(num_arms)
+        self.counts = np.ones(num_arms)
+>>>>>>> 198a0d9965948793829cc4bbd531c45e3dd50e3a
         # Add any other variables you need here
         # END EDITING HERE
 
     def give_pull(self):
+<<<<<<< HEAD
         self.samples = np.array([np.random.beta(
             self.success[i]+1, self.failure[i]+1, size=self.batch_size) for i in range(self.num_arms)])
         # print(self.samples)
@@ -67,4 +75,17 @@ class AlgorithmBatched:
         for arm_index in arm_rewards:
             self.success[arm_index] += (arm_rewards[arm_index] == 1).sum()
             self.failure[arm_index] += (arm_rewards[arm_index] == 0).sum()
+=======
+        return np.argsort(self.ucb)[-5:], partition(self.batch_size)
+        # END EDITING HERE
+
+    def get_reward(self, arm_rewards):
+        for arm_index in arm_rewards:
+            self.counts[arm_index] += arm_rewards[arm_index].size
+            self.time += self.batch_size
+            self.values[arm_index] = (self.values[arm_index]*self.counts[arm_index]+np.sum(
+                arm_rewards[arm_index]))/(self.counts[arm_index] + arm_rewards[arm_index].size)
+        self.ucb = [min(self.values[i] + np.sqrt(
+            (2*np.log(self.time)/self.counts[i])), 1) for i in range(self.num_arms)]
+>>>>>>> 198a0d9965948793829cc4bbd531c45e3dd50e3a
         # END EDITING HERE

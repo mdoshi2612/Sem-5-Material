@@ -124,4 +124,4 @@ if __name__ == '__main__':
 
     task2(AlgorithmBatched, probs)
 
-    # task3(AlgorithmManyArms)
+    task3(AlgorithmManyArms)
