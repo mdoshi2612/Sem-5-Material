@@ -48,11 +48,7 @@ class AlgorithmManyArms:
         new_value = ((n - 1) / n) * value + (1 / n) * reward
         self.values[arm_index] = new_value
         if reward == 0:
-<<<<<<< HEAD
             if (self.values[arm_index] > 0.98):
-=======
-            if (self.values[arm_index] > 0.95):
->>>>>>> 198a0d9965948793829cc4bbd531c45e3dd50e3a
                 pass
             else:
                 self.index += 1

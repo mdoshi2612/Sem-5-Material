@@ -60,13 +60,9 @@ print(samples)
 temp = (np.argsort(samples)[-batch_size:]/10).astype(int)
 print(temp)
 
-<<<<<<< HEAD
 unique, counts = np.unique(temp, return_counts=True)
 print(unique)
 print(counts)
-=======
-# print(solver(0.6, 80, 4, 3))
->>>>>>> 198a0d9965948793829cc4bbd531c45e3dd50e3a
 
 
 # time = 80
