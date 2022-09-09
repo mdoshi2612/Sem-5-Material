@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import time
 
 
 def KL(p, q):
@@ -12,15 +13,23 @@ def KL(p, q):
     return p*math.log(p/q) + (1-p)*math.log((1-p)/(1-q))
 
 
-def rhs(time, count, c=3):
-    return (math.log(time) + c*math.log(math.log(time)))/count
+def rhs(time, c=3):
+    return math.log(time)+c*math.log(math.log(time))
 
 
-def solver(p, rhs, STEP=0.01):
-    q = 1-1e-5
-    while (q >= p and (KL(p, q) - rhs > 0)):
-        q -= STEP
+def solver(mean, time, count, c=3):
+    bound = rhs(time, c)/count
+    q = mean
+    step = (1-mean)/2
+    while step > 1e-6:
+        if (KL(mean, q + step) <= bound):
+            q += step
+        step /= 2
     return q
 
 
-print(solver((0.5), rhs(1000, 900, 3)))
+start = time.time()
+q = solver(0.5, 100, 10)
+end = time.time()
+print(q)
+print(end - start)

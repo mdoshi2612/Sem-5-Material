@@ -12,7 +12,7 @@ You need to complete the following methods:
         ([0, 1], [2, 3]), then the first arm should be pulled 2 times, and the
         second arm should be pulled 3 times. Note that the sum of values in
         the second array should be equal to the batch size of the bandit.
-    
+
     - get_reward(self, arm_rewards): This method is called just after the
         give_pull method. The method should update the algorithm's internal
         state based on the rewards that were received. arm_rewards is a dictionary
@@ -25,7 +25,19 @@ import numpy as np
 
 # START EDITING HERE
 # You can use this space to define any helper functions that you need.
+
+
+def partition(batch_size):
+    first_elem = int(0.4*batch_size)
+    second_elem = int(0.25*batch_size)
+    third_elem = int(0.15*batch_size)
+    fourth_elem = int(0.1*batch_size)
+    fifth_elem = batch_size - \
+        (first_elem + second_elem + third_elem + fourth_elem)
+    return np.array([first_elem, second_elem, third_elem, fourth_elem, fifth_elem], dtype=np.int64)
+
 # END EDITING HERE
+
 
 class AlgorithmBatched:
     def __init__(self, num_arms, horizon, batch_size):
@@ -34,15 +46,23 @@ class AlgorithmBatched:
         self.batch_size = batch_size
         assert self.horizon % self.batch_size == 0, "Horizon must be a multiple of batch size"
         # START EDITING HERE
+        self.time = 2
+        self.values = np.zeros(num_arms)
+        self.ucb = np.zeros(num_arms)
+        self.counts = np.ones(num_arms)
         # Add any other variables you need here
         # END EDITING HERE
-    
+
     def give_pull(self):
-        # START EDITING HERE
-        return [0], [self.batch_size]
+        return np.argsort(self.ucb)[-5:], partition(self.batch_size)
         # END EDITING HERE
-    
+
     def get_reward(self, arm_rewards):
-        # START EDITING HERE
-        pass
+        for arm_index in arm_rewards:
+            self.counts[arm_index] += arm_rewards[arm_index].size
+            self.time += self.batch_size
+            self.values[arm_index] = (self.values[arm_index]*self.counts[arm_index]+np.sum(
+                arm_rewards[arm_index]))/(self.counts[arm_index] + arm_rewards[arm_index].size)
+        self.ucb = [min(self.values[i] + np.sqrt(
+            (2*np.log(self.time)/self.counts[i])), 1) for i in range(self.num_arms)]
         # END EDITING HERE

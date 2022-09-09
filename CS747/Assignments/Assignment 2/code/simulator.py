@@ -6,15 +6,12 @@ from task1 import Algorithm, Eps_Greedy, UCB, KL_UCB, Thompson_Sampling
 from task2 import AlgorithmBatched
 from task3 import AlgorithmManyArms
 from multiprocessing import Pool
-import random
 import time
-
-# np.random.seed(0)
-random.seed(0)
 
 
 def single_sim(seed=0, ALGO=Algorithm, PROBS=[0.3, 0.5, 0.7], HORIZON=1000):
     np.random.seed(seed)
+    np.random.shuffle(PROBS)
     bandit = BernoulliBandit(probs=PROBS)
     algo_inst = ALGO(num_arms=len(PROBS), horizon=HORIZON)
     for t in range(HORIZON):
@@ -26,6 +23,7 @@ def single_sim(seed=0, ALGO=Algorithm, PROBS=[0.3, 0.5, 0.7], HORIZON=1000):
 
 def single_batch_sim(seed=0, ALGO=Algorithm, PROBS=[0.3, 0.5, 0.7], HORIZON=1000, BATCH_SIZE=1):
     np.random.seed(seed)
+    np.random.shuffle(PROBS)
     bandit = BernoulliBandit(probs=PROBS, batch_size=BATCH_SIZE)
     algo_inst = ALGO(num_arms=len(PROBS),
                      horizon=HORIZON, batch_size=BATCH_SIZE)
@@ -118,13 +116,12 @@ if __name__ == '__main__':
     # Note - all the plots generated will be for the following bandit instance:
     # 20 arms with uniformly distributed means
     probs = [i/20 for i in range(20)]
-    random.shuffle(probs)
 
     # task1(Eps_Greedy, probs)
-    task1(UCB, probs)
+    # task1(UCB, probs)
     # task1(KL_UCB, probs)
     # task1(Thompson_Sampling, probs)
 
     # task2(AlgorithmBatched, probs)
 
-    # task3(AlgorithmManyArms)
+    task3(AlgorithmManyArms)
