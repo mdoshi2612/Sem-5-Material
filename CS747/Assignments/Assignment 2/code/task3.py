@@ -24,17 +24,33 @@ import numpy as np
 # You can use this space to define any helper functions that you need
 # END EDITING HERE
 
+
 class AlgorithmManyArms:
     def __init__(self, num_arms, horizon):
         self.num_arms = num_arms
+        self.horizon = horizon
+        self.index = 0
+        self.counts = np.zeros(self.num_arms)
+        self.values = np.zeros(self.num_arms)
         # Horizon is same as number of arms
-    
+
     def give_pull(self):
         # START EDITING HERE
-        raise NotImplementedError
+        return self.index
         # END EDITING HERE
-    
+
     def get_reward(self, arm_index, reward):
         # START EDITING HERE
-        raise NotImplementedError
+        # print("Arm %d sampled and reward %d" % (arm_index, reward))
+        self.counts[arm_index] += 1
+        n = self.counts[arm_index]
+        value = self.values[arm_index]
+        new_value = ((n - 1) / n) * value + (1 / n) * reward
+        self.values[arm_index] = new_value
+        if reward == 0:
+            if (self.values[arm_index] > 0.98):
+                pass
+            else:
+                self.index += 1
+
         # END EDITING HERE

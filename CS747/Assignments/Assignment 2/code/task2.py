@@ -12,7 +12,7 @@ You need to complete the following methods:
         ([0, 1], [2, 3]), then the first arm should be pulled 2 times, and the
         second arm should be pulled 3 times. Note that the sum of values in
         the second array should be equal to the batch size of the bandit.
-    
+
     - get_reward(self, arm_rewards): This method is called just after the
         give_pull method. The method should update the algorithm's internal
         state based on the rewards that were received. arm_rewards is a dictionary
@@ -25,7 +25,19 @@ import numpy as np
 
 # START EDITING HERE
 # You can use this space to define any helper functions that you need.
+
+
+def partition(batch_size):
+    first_elem = int(0.4*batch_size)
+    second_elem = int(0.25*batch_size)
+    third_elem = int(0.15*batch_size)
+    fourth_elem = int(0.1*batch_size)
+    fifth_elem = batch_size - \
+        (first_elem + second_elem + third_elem + fourth_elem)
+    return np.array([first_elem, second_elem, third_elem, fourth_elem, fifth_elem], dtype=np.int64)
+
 # END EDITING HERE
+
 
 class AlgorithmBatched:
     def __init__(self, num_arms, horizon, batch_size):
@@ -34,15 +46,25 @@ class AlgorithmBatched:
         self.batch_size = batch_size
         assert self.horizon % self.batch_size == 0, "Horizon must be a multiple of batch size"
         # START EDITING HERE
+        self.success = np.zeros((num_arms))
+        self.failure = np.zeros((num_arms))
+        self.samples = np.zeros((num_arms, self.batch_size))
         # Add any other variables you need here
         # END EDITING HERE
-    
+
     def give_pull(self):
-        # START EDITING HERE
-        return [0], [self.batch_size]
-        # END EDITING HERE
-    
+        self.samples = np.array([np.random.beta(
+            self.success[i]+1, self.failure[i]+1, size=self.batch_size) for i in range(self.num_arms)])
+        # print(self.samples)
+        temp = (np.argsort(self.samples.ravel())
+                [-self.batch_size:]/self.batch_size).astype(int)
+
+        return np.unique(temp, return_counts=True)
+
+# END EDITING HERE
+
     def get_reward(self, arm_rewards):
-        # START EDITING HERE
-        pass
+        for arm_index in arm_rewards:
+            self.success[arm_index] += (arm_rewards[arm_index] == 1).sum()
+            self.failure[arm_index] += (arm_rewards[arm_index] == 0).sum()
         # END EDITING HERE

@@ -22,6 +22,7 @@ We have implemented the epsilon-greedy algorithm for you. You can use it as a
 reference for implementing your own algorithms.
 """
 
+from re import A
 import numpy as np
 import math
 # Hint: math.log is much faster than np.log for scalars
@@ -75,16 +76,19 @@ def KL(p, q):
     return p*math.log(p/q) + (1-p)*math.log((1-p)/(1-q))
 
 
-def rhs(time, count, c=3):
-    return (math.log(time) + c*math.log(math.log(time)))/count
+def rhs(time, c=3):
+    return math.log(time)+c*math.log(math.log(time))
 
 
-def solver(p, rhs, STEP=0.005):
-    q = 1-1e-5
-    while (q >= p and (KL(p, q) - rhs > 0)):
-        q -= STEP
+def solver(mean, count, time, c=3):
+    bound = rhs(time, c)/count
+    q = mean
+    step = (1-mean)/2
+    while step > 1e-3:
+        if (KL(mean, q + step) <= bound):
+            q += step
+        step /= 2
     return q
-
 
 # END EDITING HERE
 
@@ -102,7 +106,6 @@ class UCB(Algorithm):
 
     def give_pull(self):
         # START EDITING HERE
-
         return np.argmax(self.ucb)
         # END EDITING HERE
 
@@ -113,8 +116,8 @@ class UCB(Algorithm):
         n = self.counts[arm_index]
         value = self.values[arm_index]
         self.values[arm_index] = ((n - 1) / n) * value + (1 / n) * reward
-        self.ucb = [self.values[i] + math.sqrt(
-            (2*math.log(self.time)/self.counts[i])) for i in range(self.num_arms)]
+        self.ucb = [min(self.values[i] + math.sqrt(
+            (2*math.log(self.time)/self.counts[i])), 1) for i in range(self.num_arms)]
         # END EDITING HERE
 
 
@@ -125,23 +128,24 @@ class KL_UCB(Algorithm):
         # START EDITING HERE
         self.time = 1
         self.counts = np.ones(num_arms)
-        self.values = np.zeros(num_arms)
+        self.values = np.ones(num_arms)
         self.ucb = np.zeros(num_arms)
-        self.C = 3
         # END EDITING HERE
 
     def give_pull(self):
         # START EDITING HERE
-        return np.argmax(solver(self.values[i], rhs(self.time, self.counts[i])) for i in range(self.num_arms))
+        return np.argmax(self.ucb)
         # END EDITING HERE
 
     def get_reward(self, arm_index, reward):
         # START EDITING HERE
-        self.counts[arm_index] += 1
         self.time += 1
+        self.counts[arm_index] += 1
         n = self.counts[arm_index]
         value = self.values[arm_index]
         self.values[arm_index] = ((n - 1) / n) * value + (1 / n) * reward
+        self.ucb = [solver(self.values[index], self.counts[index], self.time)
+                    for index in range(self.num_arms)]
         # END EDITING HERE
 
 
@@ -150,15 +154,13 @@ class Thompson_Sampling(Algorithm):
         super().__init__(num_arms, horizon)
         # You can add any other variables you need here
         # START EDITING HERE
-        self.generator = np.random.default_rng()
         self.success = np.zeros(num_arms)
         self.failure = np.zeros(num_arms)
-
         # END EDITING HERE
 
     def give_pull(self):
         # START EDITING HERE
-        return np.argmax([self.generator.beta(self.success[i]+1, self.failure[i]+1) for i in range(self.num_arms)])
+        return np.argmax([np.random.beta(self.success[i]+1, self.failure[i]+1) for i in range(self.num_arms)])
         # END EDITING HERE
 
     def get_reward(self, arm_index, reward):
