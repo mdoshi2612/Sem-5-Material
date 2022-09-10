@@ -32,6 +32,7 @@ class AlgorithmManyArms:
         self.index = 0
         self.counts = np.zeros(self.num_arms)
         self.values = np.zeros(self.num_arms)
+        self.confidence = 0.98
         # Horizon is same as number of arms
 
     def give_pull(self):
@@ -48,7 +49,7 @@ class AlgorithmManyArms:
         new_value = ((n - 1) / n) * value + (1 / n) * reward
         self.values[arm_index] = new_value
         if reward == 0:
-            if (self.values[arm_index] > 0.98):
+            if (self.values[arm_index] > self.confidence):
                 pass
             else:
                 self.index += 1

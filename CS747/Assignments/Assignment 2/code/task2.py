@@ -27,15 +27,6 @@ import numpy as np
 # You can use this space to define any helper functions that you need.
 
 
-def partition(batch_size):
-    first_elem = int(0.4*batch_size)
-    second_elem = int(0.25*batch_size)
-    third_elem = int(0.15*batch_size)
-    fourth_elem = int(0.1*batch_size)
-    fifth_elem = batch_size - \
-        (first_elem + second_elem + third_elem + fourth_elem)
-    return np.array([first_elem, second_elem, third_elem, fourth_elem, fifth_elem], dtype=np.int64)
-
 # END EDITING HERE
 
 

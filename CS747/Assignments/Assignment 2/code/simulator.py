@@ -122,6 +122,6 @@ if __name__ == '__main__':
     # task1(KL_UCB, probs)
     # task1(Thompson_Sampling, probs)
 
-    # task2(AlgorithmBatched, probs)
+    task2(AlgorithmBatched, probs)
 
-    task3(AlgorithmManyArms)
+    # task3(AlgorithmManyArms)
