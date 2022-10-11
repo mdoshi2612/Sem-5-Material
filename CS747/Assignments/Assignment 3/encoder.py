@@ -5,20 +5,29 @@ import numpy as np
 
 
 class Encoder():
-    def __init__(self, parameters_path, statefile_path, q) -> None:
+    def __init__(self, statefile_path, parameters_path, q):
         self.action_dict = {'0': 0, '1': 1, '2': 2, '4': 3, '6': 4}
         self.outcome_dict = {'-1': 0, '0': 1,
                              '1': 2, '2': 3, '3': 4, '4': 5, '6': 6}
-        self.num_states = 452
-        self.num_actions = 5
-        self.file = open("mdpfile.txt", "w")
+
         self.q = q
-        self.parameters_path = parameters_path
+        self.num_actions = 6
+
         self.state_path = statefile_path
         self.action_prob_matrix = np.zeros((self.num_actions, 7))
         self.tail = False
-        with open(self.parameters_path, 'r') as file:
+
+        with open(self.state_path, 'r') as statefile:
+            line = statefile.readline()
+            balls, runs = int(line[:2]), int(line[2:])
+            self.num_states = balls*runs*2 + 2
+            self.hash_param = runs
+            self.half_states = balls*runs
+            self.win_state = self.num_states - 1
+            self.loss_state = self.num_states - 2
+        with open(parameters_path, 'r') as file:
             lines = file.readlines()[1:]
+
             for line in lines:
                 action = line.split()[0]
                 self.action_prob_matrix[self.action_dict[str(line[0])]] = (line.split()[
@@ -27,7 +36,7 @@ class Encoder():
     def write_info(self):
         print("numStates " + str(self.num_states))
         print("numActions " + str(self.num_actions))
-        print("end 451,452")
+        print(f"end {self.num_states-2} {self.num_states-1}")
 
     def get_action_key(self, action):
         # This function provides the index in the array and return the action key
@@ -38,6 +47,108 @@ class Encoder():
         # This function provides the index in the array and return the outcome key
         return (list(self.outcome_dict.keys())
                 [list(self.outcome_dict.values()).index(outcome)])
+
+    def write_transitions(self):
+
+        # Assuming middle order batsman is on strike
+        with open(self.state_path, 'r') as statefile:
+            lines = statefile.readlines()
+            # current_balls = int(lines[0][:2])
+            # current_runs = int(lines[0][:2])
+            curr_state = 0
+            current_balls = 13
+            current_runs = 15
+            if (current_balls >= 1 and current_runs >= 1):
+                if self.tail == False:
+                    curr_state = self.hash_param * \
+                        (current_balls-1) + current_runs-1
+
+                else:
+                    curr_state = self.hash_param * \
+                        (current_balls-1) + current_runs-1 + self.half_states
+
+                if self.tail == True:
+                    # This means tailender is at strike position
+                    # If tailender is out
+                    print(
+                        f"transition {curr_state} 5 {self.loss_state} {self.q} 0")
+
+                    # If tailender takes no run
+                    next_state = self.hash_param * \
+                        (current_balls - 2) + current_runs - 1 + self.half_states
+                    self.tail = True
+                    if ((current_balls - 1) % 6 == 0):
+                        self.tail ^= True
+                        next_state += self.half_states
+                    print(
+                        f"transition {curr_state} 5 {next_state} {(1 - self.q)/2} 0")
+
+                    # If tailender takes 1 run
+                    if (current_runs == 1):
+                        # If the game is done when this one run is taken
+                        print(
+                            f"transition {curr_state} 5 {self.win_state} {(1 - self.q)/2} 1")
+                        self.tail = False
+
+                    else:
+
+                        # Game does not finish
+                        next_state = self.hash_param * \
+                            (current_balls - 2) + current_runs - 2
+                        if ((current_balls - 1) % 6 == 0):
+                            self.tail ^= True
+                            next_state += self.half_states
+                        print(
+                            f"transition {curr_state} 5 {next_state} {(1 - self.q)/2} 0")
+
+                else:
+                    # This means that one of the middle order batsman is at strike position
+                    for action_index, action in enumerate(self.action_prob_matrix[:]):
+                        # Now the action is defined
+
+                        for outcome_index, prob in enumerate(action):
+                            # Now the different outcomes can be defined here
+                            if prob != 0:
+                                # If the action can occur
+                                runs_scored = int(
+                                    self.get_outcome_key(outcome_index))
+                                if (runs_scored == -1):
+                                    # If the batsman is out
+
+                                    print(
+                                        f"transition {curr_state} {action_index} {self.loss_state} {prob} 0")
+
+                                elif (current_runs - runs_scored <= 0):
+                                    # If the game is over
+                                    print(
+                                        f"transition {curr_state} {action_index} {self.win_state} {prob} 1")
+
+                                else:
+                                    # The game isn't over
+                                    if (runs_scored % 2 == 0):
+                                        # Batsman Retains Strike
+                                        next_state = self.hash_param * \
+                                            (current_balls - 2) + \
+                                            current_runs - runs_scored - 1
+                                        if ((current_balls - 1) % 6 == 0):
+                                            self.tail ^= True
+                                            next_state += self.half_states
+                                        print(
+                                            f"transition {curr_state} {action_index} {next_state} {prob} 0")
+                                    else:
+                                        # Batsman loses strike
+                                        self.tail = True
+                                        next_state = self.hash_param * \
+                                            (current_balls - 2) + \
+                                            current_runs - runs_scored - 1 + self.half_states
+                                        if ((current_balls-1) % 6 == 0):
+                                            self.tail ^= True
+                                            next_state -= self.half_states
+                                        print(
+                                            f"transition {curr_state} {action_index} {next_state} {prob} 0")
+
+            else:
+                pass
 
 
 def parameters_path(string):
@@ -64,6 +175,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    encoder = Encoder("data\cricket\sample-p1.txt",
-                      "data\cricket\cricket_state_list.txt", 0.25)
-    encoder.write_info()
+    encoder = Encoder(args.states, args.parameters, args.q)
+    encoder.write_transitions()
