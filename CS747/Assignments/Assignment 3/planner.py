@@ -125,7 +125,7 @@ class MDPPlanning():
     def print_output(self):
         for i in range(self.nums_states):
             print(str(self.value_function[i]) +
-                  " " + str(self.policy[i]) + "\n")
+                  " " + str(self.policy[i]))
 
 
 def mdp_path(string):
@@ -147,35 +147,36 @@ def policy_path(string):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--mdp", type=mdp_path)
-    parser.add_argument("--algorithm", type=str, default="lp")
+    parser.add_argument("--algorithm", type=str, default="vi")
     parser.add_argument("--policy", type=policy_path)
 
     args = parser.parse_args()
 
     mdp = MDPPlanning(args.mdp)
 
-    if (args.policy == None):
-        # Computing optimal policy
-        if not (args.algorithm == "hpi" or args.algorithm == "vi" or args.algorithm == "lp"):
-            print("Algorithm should be hpi, vi or lp")
-            sys.exit(0)
-        elif args.algorithm == "vi":
-            mdp.value_iteration()
-            mdp.print_output()
+    print(mdp.nums_actions, mdp.nums_states,
+          mdp.mdp_rewards[299][5][301], mdp.mdp_transitions[0][0][300], mdp.end_states)
 
-        elif args.algorithm == "hpi":
-            mdp.howards_policy_iteration()
-            mdp.print_output()
+    # if (args.policy == None):
+    #     # Computing optimal policy
+    #     if not (args.algorithm == "hpi" or args.algorithm == "vi" or args.algorithm == "lp"):
+    #         print("Algorithm should be hpi, vi or lp")
+    #         sys.exit(0)
+    #     elif args.algorithm == "vi":
+    #         mdp.value_iteration()
+    #         mdp.print_output()
 
-        else:
-            mdp.linear_programming()
-            mdp.print_output()
-            # print("%s Algorithm used" % args.algorithm)
+    #     elif args.algorithm == "hpi":
+    #         mdp.howards_policy_iteration()
+    #         mdp.print_output()
 
-    else:
-        pass
-        # Evaluating the given policy
-        mdp.policy_evaluation(args.policy)
-        mdp.print_output()
+    #     else:
+    #         mdp.linear_programming()
+    #         mdp.print_output()
+    #         # print("%s Algorithm used" % args.algorithm)
 
-    mdp.linear_programming()
+    # else:
+    #     pass
+    #     # Evaluating the given policy
+    #     mdp.policy_evaluation(args.policy)
+    #     mdp.print_output()

@@ -118,7 +118,7 @@ def verifyOutput(states, output, in_file, q):
         lines = file.readlines()
     states = [line.strip() for line in lines]
     if len(output) != len(states):
-        print("\n","*"*10,f"Mistake: Expected {len(states)} policy lines, got {len(output)-1}")
+        print("\n","*"*10,f"Mistake: Expected {len(states)} policy lines, got {len(output)}")
         sys.exit()
     
     policy_states=[]
@@ -155,14 +155,16 @@ def verifyOutput(states, output, in_file, q):
             base_A = int(base[i][1])
             if(base_A != est_A):
                 print(terms[0], end=' ')
-                print("Wrong action")
+                print("Action does not match, but it may be correct if the same value function is obtained for another action")
             
-            elif abs(est_V-base_V) > (10**-4):
+            if abs(est_V-base_V) > (10**-4):
                 print(terms[0], end=' ')
                 print("%10.6f"%est_V,"%10.6f"%base_V,"%10.6f"%abs(est_V-base_V),end="\t")
-                print("\tNot OK")
+                print("\t Value function not OK")
+                return
     else:
         print("Not verified policy and win probabilities. Use default --q to verify.")
+        return
 
     
     print("All OK")
