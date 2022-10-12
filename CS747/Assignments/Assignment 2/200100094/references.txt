@@ -1,0 +1,3 @@
+Bisection Method - https://en.wikipedia.org/wiki/Bisection_method
+Numpy Documentation - https://numpy.org/
+Object Oriented Programming Concepts - https://www.geeksforgeeks.org/python-oops-concepts/
